@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hospital Microservices Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f7fa;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #0f4c81 0%, #1a73e8 100%);
+            padding: 30px 40px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 30px 40px;
+        }
+
+        h1 {
+            color: white;
+            margin: 0;
+            font-size: 2em;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            color: rgba(255,255,255,0.9);
+            font-size: 0.95em;
+            margin-top: 5px;
+            font-weight: 400;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 28px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border: 1px solid #e5e7eb;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+        }
+
+        .stat-number {
+            font-size: 2.8em;
+            font-weight: 700;
+            color: #1a73e8;
+            margin: 12px 0 8px 0;
+        }
+
+        .stat-label {
+            color: #5f6368;
+            font-size: 0.95em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 500;
+        }
+
+        .sections {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 24px;
+        }
+
+        .section {
+            background: white;
+            border-radius: 12px;
+            padding: 28px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border: 1px solid #e5e7eb;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .section-title {
+            font-size: 1.4em;
+            color: #202124;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .icon {
+            width: 32px;
+            height: 32px;
+            background: #e8f0fe;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #1a73e8;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+        }
+
+        .refresh-btn {
+            background: #f1f3f4;
+            color: #5f6368;
+            border: 1px solid #dadce0;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95em;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .refresh-btn:hover {
+            background: #e8eaed;
+            border-color: #c4c7c9;
+        }
+
+        .create-btn {
+            background: #1a73e8;
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95em;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .create-btn:hover {
+            background: #1765cc;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #f8f9fa;
+            padding: 16px;
+            text-align: left;
+            font-weight: 600;
+            color: #202124;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        td {
+            padding: 16px;
+            border-bottom: 1px solid #f1f3f4;
+            color: #5f6368;
+            font-size: 0.95em;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 16px;
+            font-size: 0.8em;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
+        .badge-booked {
+            background: #e6f4ea;
+            color: #137333;
+        }
+
+        .badge-pending {
+            background: #fef7e0;
+            color: #b54708;
+        }
+
+        .badge-paid {
+            background: #e6f4ea;
+            color: #137333;
+        }
+
+        .badge-cancelled {
+            background: #fce8e6;
+            color: #c5221f;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px;
+            color: #5f6368;
+            font-size: 1em;
+        }
+
+        .error {
+            background: #fce8e6;
+            color: #c5221f;
+            padding: 16px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #c5221f;
+            font-size: 0.95em;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            background: white;
+            padding: 32px;
+            border-radius: 12px;
+            max-width: 540px;
+            width: 90%;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+        }
+
+        .modal-title {
+            font-size: 1.5em;
+            margin-bottom: 24px;
+            color: #202124;
+            font-weight: 600;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #5f6368;
+            font-weight: 500;
+            font-size: 0.95em;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid #dadce0;
+            border-radius: 8px;
+            font-size: 0.95em;
+            transition: all 0.2s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #1a73e8;
+            box-shadow: 0 0 0 3px rgba(26,115,232,0.1);
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 28px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95em;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #1a73e8;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1765cc;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+        }
+
+        .btn-secondary {
+            background: #f1f3f4;
+            color: #5f6368;
+            border: 1px solid #dadce0;
+        }
+
+        .btn-secondary:hover {
+            background: #e8eaed;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #9aa0a6;
+        }
+
+        .empty-state-icon {
+            font-size: 3em;
+            margin-bottom: 16px;
+            color: #dadce0;
+        }
+
+        .empty-state-text {
+            font-size: 1em;
+            color: #5f6368;
+        }
+
+        strong {
+            color: #202124;
+            font-weight: 600;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-icon {
+            background: transparent;
+            border: 1px solid #dadce0;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1.1em;
+            transition: all 0.2s;
+            color: #5f6368;
+        }
+
+        .btn-icon:hover {
+            background: #f8f9fa;
+            border-color: #c4c7c9;
+        }
+
+        .btn-edit:hover {
+            background: #e8f0fe;
+            border-color: #1a73e8;
+            color: #1a73e8;
+        }
+
+        .btn-delete:hover {
+            background: #fce8e6;
+            border-color: #c5221f;
+            color: #c5221f;
+        }
+
+        .btn-cancel:hover {
+            background: #fef7e0;
+            border-color: #b54708;
+            color: #b54708;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Hospital Management System</h1>
+        <div class="subtitle">Real-time Microservices Dashboard</div>
+    </div>
+    
+    <div class="container">
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-label">Patients</div>
+                <div class="stat-number" id="patientsCount">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Appointments</div>
+                <div class="stat-number" id="appointmentsCount">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Bills</div>
+                <div class="stat-number" id="billsCount">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Notifications</div>
+                <div class="stat-number" id="notificationsCount">0</div>
+            </div>
+        </div>
+
+        <div class="sections">
+            <!-- Patients Section -->
+            <div class="section">
+                <div class="section-header">
+                    <div class="section-title">
+                        <span class="icon">PT</span>
+                        Patients
+                    </div>
+                    <div class="button-group">
+                        <button class="create-btn" onclick="openCreatePatientModal()">+ New Patient</button>
+                        <button class="refresh-btn" onclick="loadPatients()">Refresh</button>
+                    </div>
+                </div>
+                <div id="patientsTable"></div>
+            </div>
+
+            <!-- Appointments Section -->
+            <div class="section">
+                <div class="section-header">
+                    <div class="section-title">
+                        <span class="icon">AP</span>
+                        Appointments
+                    </div>
+                    <div class="button-group">
+                        <button class="create-btn" onclick="openCreateModal()">+ New Appointment</button>
+                        <button class="refresh-btn" onclick="loadAppointments()">Refresh</button>
+                    </div>
+                </div>
+                <div id="appointmentsTable"></div>
+            </div>
+
+            <!-- Bills Section -->
+            <div class="section">
+                <div class="section-header">
+                    <div class="section-title">
+                        <span class="icon">BL</span>
+                        Bills
+                    </div>
+                    <div class="button-group">
+                        <button class="refresh-btn" onclick="loadBills()">Refresh</button>
+                    </div>
+                </div>
+                <div id="billsTable"></div>
+            </div>
+
+            <!-- Notifications Section -->
+            <div class="section">
+                <div class="section-header">
+                    <div class="section-title">
+                        <span class="icon">NT</span>
+                        Notifications
+                    </div>
+                    <div class="button-group">
+                        <button class="refresh-btn" onclick="loadNotifications()">Refresh</button>
+                    </div>
+                </div>
+                <div id="notificationsTable"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Patient Modal -->
+    <div id="editPatientModal" class="modal">
+        <div class="modal-content">
+            <h2 class="modal-title">Edit Patient</h2>
+            <form id="editPatientForm">
+                <input type="hidden" id="editPatientId">
+                <div class="form-group">
+                    <label>First Name</label>
+                    <input type="text" id="editFirstName" placeholder="John" required>
+                </div>
+                <div class="form-group">
+                    <label>Last Name</label>
+                    <input type="text" id="editLastName" placeholder="Doe" required>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="editEmail" placeholder="john.doe@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label>Phone</label>
+                    <input type="tel" id="editPhone" placeholder="1234567890">
+                </div>
+                <div class="form-group">
+                    <label>Address</label>
+                    <input type="text" id="editAddress" placeholder="123 Main St">
+                </div>
+                <div class="form-group">
+                    <label>Date of Birth</label>
+                    <input type="date" id="editDateOfBirth" required>
+                </div>
+                <div class="modal-buttons">
+                    <button type="submit" class="btn btn-primary">Update</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeEditPatientModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Create Patient Modal -->
+    <div id="createPatientModal" class="modal">
+        <div class="modal-content">
+            <h2 class="modal-title">Create New Patient</h2>
+            <form id="createPatientForm">
+                <div class="form-group">
+                    <label>First Name</label>
+                    <input type="text" id="firstName" placeholder="John" required>
+                </div>
+                <div class="form-group">
+                    <label>Last Name</label>
+                    <input type="text" id="lastName" placeholder="Doe" required>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="email" placeholder="john.doe@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label>Phone</label>
+                    <input type="tel" id="phone" placeholder="1234567890">
+                </div>
+                <div class="form-group">
+                    <label>Address</label>
+                    <input type="text" id="address" placeholder="123 Main St">
+                </div>
+                <div class="form-group">
+                    <label>Date of Birth</label>
+                    <input type="date" id="dateOfBirth" required>
+                </div>
+                <div class="modal-buttons">
+                    <button type="submit" class="btn btn-primary">Create</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeCreatePatientModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Create Appointment Modal -->
+    <div id="createModal" class="modal">
+        <div class="modal-content">
+            <h2 class="modal-title">Create New Appointment</h2>
+            <form id="createForm">
+                <div class="form-group">
+                    <label>Select Patient</label>
+                    <select id="patientSelector" required style="width: 100%; padding: 12px; border: 1px solid #dadce0; border-radius: 8px; font-size: 0.95em; background: white;">
+                        <option value="">-- Select a patient --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Patient ID <span style="color: #9aa0a6; font-size: 0.85em;">(Auto-filled)</span></label>
+                    <input type="text" id="patientId" placeholder="Select a patient above" readonly required style="background: #f8f9fa; cursor: not-allowed;">
+                </div>
+                <div class="form-group">
+                    <label>Doctor ID</label>
+                    <input type="text" id="doctorId" placeholder="e.g., D001" required>
+                </div>
+                <div class="modal-buttons">
+                    <button type="submit" class="btn btn-primary">Create</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeCreateModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_URLS = {
+            patients: 'http://localhost:8082/patients/all',
+            appointments: 'http://localhost:8081/appointments',
+            appointmentsAll: 'http://localhost:8081/appointments/all',
+            bills: 'http://localhost:3003/api/bills',
+            notifications: 'http://localhost:3004/api/notifications'
+        };
+
+        // Load all data on page load
+        window.onload = () => {
+            loadAllData();
+            // Auto-refresh every 10 seconds
+            setInterval(loadAllData, 10000);
+        };
+
+        function loadAllData() {
+            loadPatients();
+            loadAppointments();
+            loadBills();
+            loadNotifications();
+        }
+
+        async function loadPatients() {
+            try {
+                const response = await fetch(API_URLS.patients);
+                const patients = await response.json();
+                
+                document.getElementById('patientsCount').textContent = patients.length;
+                
+                if (patients.length === 0) {
+                    document.getElementById('patientsTable').innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">●</div>
+                            <div class="empty-state-text">No patients found. Create one to get started.</div>
+                        </div>
+                    `;
+                    return;
+                }
+
+                let html = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Date of Birth</th>
+                                <th>Created At</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                patients.forEach(patient => {
+                    html += `
+                        <tr>
+                            <td><strong>#${patient.id}</strong></td>
+                            <td>${patient.firstName} ${patient.lastName}</td>
+                            <td>${patient.email}</td>
+                            <td>${patient.phone || 'N/A'}</td>
+                            <td>${patient.dateOfBirth || 'N/A'}</td>
+                            <td>${new Date(patient.createdAt).toLocaleString()}</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn-icon btn-edit" onclick="editPatient(${patient.id})" title="Edit">✏️</button>
+                                    <button class="btn-icon btn-delete" onclick="deletePatient(${patient.id})" title="Delete">🗑️</button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                html += '</tbody></table>';
+                document.getElementById('patientsTable').innerHTML = html;
+            } catch (error) {
+                document.getElementById('patientsTable').innerHTML = `
+                    <div class="error">Error loading patients: ${error.message}</div>
+                `;
+            }
+        }
+
+        async function loadAppointments() {
+            try {
+                const response = await fetch(API_URLS.appointmentsAll);
+                const appointments = await response.json();
+                
+                document.getElementById('appointmentsCount').textContent = appointments.length;
+                
+                if (appointments.length === 0) {
+                    document.getElementById('appointmentsTable').innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">●</div>
+                            <div class="empty-state-text">No appointments found. Create one to get started.</div>
+                        </div>
+                    `;
+                    return;
+                }
+
+                let html = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Patient ID</th>
+                                <th>Doctor ID</th>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                appointments.forEach(apt => {
+                    html += `
+                        <tr>
+                            <td><strong>#${apt.appointmentId}</strong></td>
+                            <td>${apt.patientId}</td>
+                            <td>${apt.doctorId}</td>
+                            <td>${apt.date}</td>
+                            <td>${apt.time}</td>
+                            <td><span class="badge badge-${apt.status.toLowerCase()}">${apt.status}</span></td>
+                            <td>
+                                <div class="action-buttons">
+                                    ${apt.status !== 'CANCELLED' ? `<button class="btn-icon btn-cancel" onclick="cancelAppointment(${apt.appointmentId})" title="Cancel">❌</button>` : ''}
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                html += '</tbody></table>';
+                document.getElementById('appointmentsTable').innerHTML = html;
+            } catch (error) {
+                document.getElementById('appointmentsTable').innerHTML = `
+                    <div class="error">Error loading appointments: ${error.message}</div>
+                `;
+            }
+        }
+
+        async function loadBills() {
+            try {
+                const response = await fetch(API_URLS.bills);
+                const bills = await response.json();
+                
+                document.getElementById('billsCount').textContent = bills.length;
+
+                if (bills.length === 0) {
+                    document.getElementById('billsTable').innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">●</div>
+                            <div class="empty-state-text">No bills found.</div>
+                        </div>
+                    `;
+                    return;
+                }
+
+                let html = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Bill ID</th>
+                                <th>Appointment ID</th>
+                                <th>Patient ID</th>
+                                <th>Doctor ID</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Created At</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                bills.forEach(bill => {
+                    html += `
+                        <tr>
+                            <td><strong>${bill.id.substring(0, 8)}...</strong></td>
+                            <td>#${bill.appointmentId}</td>
+                            <td>${bill.patientId}</td>
+                            <td>${bill.doctorId}</td>
+                            <td><strong>$${bill.amount.toFixed(2)}</strong></td>
+                            <td><span class="badge badge-${bill.status.toLowerCase()}">${bill.status}</span></td>
+                            <td>${new Date(bill.createdAt).toLocaleString()}</td>
+                        </tr>
+                    `;
+                });
+
+                html += '</tbody></table>';
+                document.getElementById('billsTable').innerHTML = html;
+            } catch (error) {
+                document.getElementById('billsTable').innerHTML = `
+                    <div class="error">Error loading bills: ${error.message}</div>
+                `;
+            }
+        }
+
+        async function loadNotifications() {
+            try {
+                const response = await fetch(API_URLS.notifications);
+                const notifications = await response.json();
+                
+                document.getElementById('notificationsCount').textContent = notifications.length;
+
+                if (notifications.length === 0) {
+                    document.getElementById('notificationsTable').innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">●</div>
+                            <div class="empty-state-text">No notifications found.</div>
+                        </div>
+                    `;
+                    return;
+                }
+
+                let html = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Appointment ID</th>
+                                <th>Patient ID</th>
+                                <th>Message</th>
+                                <th>Type</th>
+                                <th>Created At</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                notifications.forEach(notif => {
+                    const badgeClass = notif.type === 'APPOINTMENT_CANCELLED' ? 'badge-cancelled' : 'badge-booked';
+                    html += `
+                        <tr>
+                            <td><strong>${notif.id.substring(0, 8)}...</strong></td>
+                            <td>#${notif.appointmentId}</td>
+                            <td>${notif.patientId}</td>
+                            <td>${notif.message}</td>
+                            <td><span class="badge ${badgeClass}">${notif.type}</span></td>
+                            <td>${new Date(notif.createdAt).toLocaleString()}</td>
+                        </tr>
+                    `;
+                });
+
+                html += '</tbody></table>';
+                document.getElementById('notificationsTable').innerHTML = html;
+            } catch (error) {
+                document.getElementById('notificationsTable').innerHTML = `
+                    <div class="error">Error loading notifications: ${error.message}</div>
+                `;
+            }
+        }
+
+        async function openCreateModal() {
+            document.getElementById('createModal').style.display = 'flex';
+            await populatePatientSelector();
+        }
+
+        async function populatePatientSelector() {
+            try {
+                const response = await fetch(API_URLS.patients);
+                const patients = await response.json();
+                
+                const selector = document.getElementById('patientSelector');
+                selector.innerHTML = '<option value="">-- Select a patient --</option>';
+                
+                patients.forEach(patient => {
+                    const option = document.createElement('option');
+                    option.value = patient.id;
+                    option.textContent = `#${patient.id} - ${patient.firstName} ${patient.lastName} (${patient.email})`;
+                    selector.appendChild(option);
+                });
+                
+                // Add event listener for patient selection
+                selector.onchange = function() {
+                    document.getElementById('patientId').value = this.value;
+                };
+            } catch (error) {
+                console.error('Error loading patients:', error);
+                alert('Error loading patients list');
+            }
+        }
+
+        function closeCreateModal() {
+            document.getElementById('createModal').style.display = 'none';
+            document.getElementById('createForm').reset();
+            document.getElementById('patientId').value = '';
+        }
+
+        function openCreatePatientModal() {
+            document.getElementById('createPatientModal').style.display = 'flex';
+        }
+
+        function closeCreatePatientModal() {
+            document.getElementById('createPatientModal').style.display = 'none';
+            document.getElementById('createPatientForm').reset();
+        }
+
+        function openEditPatientModal() {
+            document.getElementById('editPatientModal').style.display = 'flex';
+        }
+
+        function closeEditPatientModal() {
+            document.getElementById('editPatientModal').style.display = 'none';
+            document.getElementById('editPatientForm').reset();
+        }
+
+        async function editPatient(id) {
+            try {
+                const response = await fetch(`http://localhost:8082/patients/${id}`);
+                const patient = await response.json();
+                
+                document.getElementById('editPatientId').value = patient.id;
+                document.getElementById('editFirstName').value = patient.firstName;
+                document.getElementById('editLastName').value = patient.lastName;
+                document.getElementById('editEmail').value = patient.email;
+                document.getElementById('editPhone').value = patient.phone || '';
+                document.getElementById('editAddress').value = patient.address || '';
+                document.getElementById('editDateOfBirth').value = patient.dateOfBirth || '';
+                
+                openEditPatientModal();
+            } catch (error) {
+                alert('Error loading patient: ' + error.message);
+            }
+        }
+
+        async function deletePatient(id) {
+            if (!confirm('Are you sure you want to delete this patient?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://localhost:8082/patients/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    alert('Patient deleted successfully!');
+                    loadPatients();
+                } else {
+                    alert('Error deleting patient');
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        async function cancelAppointment(id) {
+            if (!confirm('Are you sure you want to cancel this appointment?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://localhost:8081/appointments/${id}/cancel`, {
+                    method: 'PUT'
+                });
+
+                if (response.ok) {
+                    alert('Appointment cancelled successfully!');
+                    setTimeout(() => {
+                        loadAllData();
+                    }, 500);
+                } else {
+                    alert('Error cancelling appointment');
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        document.getElementById('editPatientForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const id = document.getElementById('editPatientId').value;
+            const patientData = {
+                firstName: document.getElementById('editFirstName').value,
+                lastName: document.getElementById('editLastName').value,
+                email: document.getElementById('editEmail').value,
+                phone: document.getElementById('editPhone').value,
+                address: document.getElementById('editAddress').value,
+                dateOfBirth: document.getElementById('editDateOfBirth').value
+            };
+
+            try {
+                const response = await fetch(`http://localhost:8082/patients/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(patientData)
+                });
+
+                if (response.ok) {
+                    closeEditPatientModal();
+                    setTimeout(() => {
+                        loadPatients();
+                    }, 500);
+                    alert('Patient updated successfully!');
+                } else {
+                    alert('Error updating patient');
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        });
+
+        document.getElementById('createPatientForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const patientData = {
+                firstName: document.getElementById('firstName').value,
+                lastName: document.getElementById('lastName').value,
+                email: document.getElementById('email').value,
+                phone: document.getElementById('phone').value,
+                address: document.getElementById('address').value,
+                dateOfBirth: document.getElementById('dateOfBirth').value
+            };
+
+            try {
+                const response = await fetch('http://localhost:8082/patients', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(patientData)
+                });
+
+                if (response.ok) {
+                    closeCreatePatientModal();
+                    setTimeout(() => {
+                        loadPatients();
+                    }, 500);
+                    alert('Patient created successfully!');
+                } else {
+                    alert('Error creating patient');
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        });
+
+        document.getElementById('createForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const patientId = document.getElementById('patientId').value;
+            const doctorId = document.getElementById('doctorId').value;
+
+            try {
+                const response = await fetch(API_URLS.appointments, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ patientId, doctorId })
+                });
+
+                if (response.ok) {
+                    closeCreateModal();
+                    // Reload data after a short delay to allow microservices to process
+                    setTimeout(() => {
+                        loadAllData();
+                    }, 500);
+                    alert('Appointment created successfully!');
+                } else {
+                    alert('Error creating appointment');
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        });
+
+        // Close modal when clicking outside
+        document.getElementById('createModal').addEventListener('click', (e) => {
+            if (e.target.id === 'createModal') {
+                closeCreateModal();
+            }
+        });
+
+        document.getElementById('createPatientModal').addEventListener('click', (e) => {
+            if (e.target.id === 'createPatientModal') {
+                closeCreatePatientModal();
+            }
+        });
+
+        document.getElementById('editPatientModal').addEventListener('click', (e) => {
+            if (e.target.id === 'editPatientModal') {
+                closeEditPatientModal();
+            }
+        });
+    </script>
+</body>
+</html>

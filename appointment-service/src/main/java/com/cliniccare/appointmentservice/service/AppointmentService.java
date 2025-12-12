@@ -49,6 +49,10 @@ public class AppointmentService {
                 .orElseThrow(() -> new RuntimeException("Appointment not found"));
     }
 
+    public List<Appointment> getAllAppointments() {
+        return repo.findAll();
+    }
+
     public List<Appointment> getByPatientId(String patientId) {
         return repo.findByPatientId(patientId);
     }

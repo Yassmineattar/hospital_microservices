@@ -24,7 +24,7 @@ public class AppointmentEventPublisher {
     public void publishAppointmentCreatedEvent(Appointment appointment) {
 
         Map<String, Object> event = new HashMap<>();
-        event.put("appointmentId", appointment.getAppointmentId());
+        event.put("appointmentId", String.valueOf(appointment.getAppointmentId()));
         event.put("date", appointment.getDate().toString());
         event.put("time", appointment.getTime().toString());
         event.put("patientId", appointment.getPatientId());
@@ -38,7 +38,7 @@ public class AppointmentEventPublisher {
 
     public void sendAppointmentBooked(Appointment appointment) {
         Map<String, Object> event = new HashMap<>();
-        event.put("appointmentId", appointment.getAppointmentId());
+        event.put("appointmentId", String.valueOf(appointment.getAppointmentId()));
         event.put("date", appointment.getDate().toString());
         event.put("time", appointment.getTime().toString());
         event.put("patientId", appointment.getPatientId());
@@ -53,7 +53,7 @@ public class AppointmentEventPublisher {
 
     public void sendAppointmentCancelled(Appointment appointment) {
         Map<String, Object> event = new HashMap<>();
-        event.put("appointmentId", appointment.getAppointmentId());
+        event.put("appointmentId", String.valueOf(appointment.getAppointmentId()));
         event.put("date", appointment.getDate().toString());
         event.put("time", appointment.getTime().toString());
         event.put("patientId", appointment.getPatientId());

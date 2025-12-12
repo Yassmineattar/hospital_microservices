@@ -33,6 +33,11 @@ public class AppointmentController {
         return service.getById(id);
     }
 
+    @GetMapping("/all")
+    public List<Appointment> getAllAppointments() {
+        return service.getAllAppointments();
+    }
+
     @GetMapping
     public List<Appointment> getByPatientId(@RequestParam String patientId) {
         return service.getByPatientId(patientId);
