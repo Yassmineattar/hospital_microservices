@@ -13,7 +13,7 @@ permissions:
 # Global environment values keep sensitive data out of the file body
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}/patient-service
+  IMAGE_NAME: patient-service
   SERVICE_NAME: patient-service
   SERVICE_PATH: patient-service
   K8S_MANIFEST_PATH: patient-service/k8s/
@@ -108,6 +108,11 @@ jobs:
         run: |
           cp artifacts/${{ env.SERVICE_NAME }}.jar ${{ env.SERVICE_PATH }}/app.jar
 
+      - name: Compute lowercase image path
+        run: |
+          IMAGE_PATH=$(echo "${GITHUB_REPOSITORY_OWNER}/${{ env.IMAGE_NAME }}" | tr '[:upper:]' '[:lower:]')
+          echo "IMAGE_PATH=$IMAGE_PATH" >> $GITHUB_ENV
+
       - name: Log in to container registry
         uses: docker/login-action@v3
         with:
@@ -122,8 +127,8 @@ jobs:
           file: ${{ env.SERVICE_PATH }}/Dockerfile
           push: true
           tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_PATH }}:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_PATH }}:${{ github.sha }}
           build-args: |
             JAR_FILE=app.jar
 
@@ -146,11 +151,16 @@ jobs:
         run: |
           echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 -d > $HOME/.kube/config
 
+      - name: Compute lowercase image path
+        run: |
+          IMAGE_PATH=$(echo "${GITHUB_REPOSITORY_OWNER}/${{ env.IMAGE_NAME }}" | tr '[:upper:]' '[:lower:]')
+          echo "IMAGE_PATH=$IMAGE_PATH" >> $GITHUB_ENV
+
       - name: Set image tag for manifests
         # Update deployment manifests with the newly pushed image using yq action
         uses: mikefarah/yq@v4
         env:
-          IMAGE_URI: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          IMAGE_URI: ${{ env.REGISTRY }}/${{ env.IMAGE_PATH }}:${{ github.sha }}
         with:
           cmd: |
             yq -i '.spec.template.spec.containers[0].image = env(IMAGE_URI)' ${{ env.K8S_MANIFEST_PATH }}deployment.yaml
