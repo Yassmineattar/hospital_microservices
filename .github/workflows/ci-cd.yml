@@ -13,7 +13,8 @@ permissions:
 # Global environment values keep sensitive data out of the file body
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}/patient-service
+  IMAGE_NAME: ${{ github.repository }}-patient-service
+  IMAGE_NAME_LOWER: ${{ toLower(github.repository) }}-patient-service
   SERVICE_NAME: patient-service
   SERVICE_PATH: patient-service
   K8S_MANIFEST_PATH: patient-service/k8s/
@@ -122,8 +123,8 @@ jobs:
           file: ${{ env.SERVICE_PATH }}/Dockerfile
           push: true
           tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}:${{ github.sha }}
           build-args: |
             JAR_FILE=app.jar
 
