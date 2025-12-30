@@ -17,7 +17,7 @@ import com.cliniccare.appointmentservice.service.AppointmentService;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/appointments")
+@RequestMapping("/api/appointments")
 @RequiredArgsConstructor
 public class AppointmentController {
 
